@@ -10,3 +10,7 @@
 8. Ask real clients for honest reviews; never fabricate testimonials.
 
 Google notes that structured data helps it understand content but does not guarantee a rich result, and that sitemaps help Google discover URLs.
+
+
+## Homepage SEO metadata update
+The homepage now uses a single consolidated meta description, stronger robots directives, Open Graph metadata, Twitter card metadata, and a theme color. Placeholder canonical/og URL values were removed rather than publishing a fake domain. Once the live domain is known, add an absolute canonical URL and matching `og:url` to `index.html`.
