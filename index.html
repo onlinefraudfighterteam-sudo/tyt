@@ -427,7 +427,8 @@ document.getElementById('caseForm').addEventListener('submit', function(e) {
 (function () {
   var tab = document.getElementById('tawk-side-tab');
   var attempts = 0;
-  var maxAttempts = 40;
+  var maxAttempts = 24;
+  var directChatUrl = 'https://tawk.to/chat/6ac5b1bf8bb5a434ca7cda86/1k4a3sle9';
 
   function openTawkChat() {
     if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
@@ -449,9 +450,15 @@ document.getElementById('caseForm').addEventListener('submit', function(e) {
 
     var timer = setInterval(function () {
       attempts++;
-      if (openTawkChat() || attempts >= maxAttempts) {
+      if (openTawkChat()) {
         clearInterval(timer);
         tab.disabled = false;
+      } else if (attempts >= maxAttempts) {
+        clearInterval(timer);
+        tab.disabled = false;
+        // Fallback: open Tawk's hosted Direct Chat page if the embedded widget
+        // is blocked by a browser extension, CSP, cache, or site setting.
+        window.open(directChatUrl, '_blank', 'noopener,noreferrer');
       }
     }, 250);
   });
