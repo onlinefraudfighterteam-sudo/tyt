@@ -14,3 +14,11 @@ Google notes that structured data helps it understand content but does not guara
 
 ## Homepage SEO metadata update
 The homepage now uses a single consolidated meta description, stronger robots directives, Open Graph metadata, Twitter card metadata, and a theme color. Placeholder canonical/og URL values were removed rather than publishing a fake domain. Once the live domain is known, add an absolute canonical URL and matching `og:url` to `index.html`.
+
+
+## Step 15 — indexing readiness
+- Canonical URL now points to the published GitHub Pages homepage.
+- Open Graph URL now matches the published homepage.
+- robots.txt allows crawling and points to the XML sitemap.
+- sitemap.xml includes the published homepage and core pages.
+- In Google Search Console, add the GitHub Pages property, submit `/tyt/sitemap.xml`, then use URL Inspection to request indexing for the homepage.
