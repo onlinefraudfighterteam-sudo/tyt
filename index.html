@@ -389,41 +389,10 @@ Tawk_API.onLoad = function () {
 (function () {
   var tab = document.getElementById('tawk-side-tab');
   if (!tab) return;
-  var directChatUrl = 'https://tawk.to/chat/6ac5b1bf8bb5a434ca7cda86/1k4a3sle9';
-  var requested = false;
-  var timer;
-
-  function openChat() {
-    if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
-      window.Tawk_API.maximize();
-      tab.disabled = false;
-      return true;
-    }
-    return false;
-  }
-
-  function waitForTawk() {
-    if (openChat()) return;
-    requested = true;
-    tab.disabled = true;
-    var tries = 0;
-    clearInterval(timer);
-    timer = setInterval(function () {
-      tries++;
-      if (openChat() || tries >= 40) {
-        clearInterval(timer);
-        tab.disabled = false;
-        if (tries >= 40 && !(window.Tawk_API && typeof window.Tawk_API.maximize === 'function')) {
-          window.open(directChatUrl, '_blank', 'noopener,noreferrer');
-        }
-      }
-    }, 250);
-  }
-
-  window.addEventListener('tawk-ready', function () {
-    if (requested) openChat();
+  var directChatUrl = 'https://tawk.to/chat/6ac5b1bf8bb5a434ca7cda86/1k4a3sle9?layout=modern';
+  tab.addEventListener('click', function () {
+    window.open(directChatUrl, '_blank', 'noopener,noreferrer');
   });
-  tab.addEventListener('click', waitForTawk);
 })();
 </script>
 </body>
