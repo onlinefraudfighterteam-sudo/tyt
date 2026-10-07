@@ -22,3 +22,9 @@ The homepage now uses a single consolidated meta description, stronger robots di
 - robots.txt allows crawling and points to the XML sitemap.
 - sitemap.xml includes the published homepage and core pages.
 - In Google Search Console, add the GitHub Pages property, submit `/tyt/sitemap.xml`, then use URL Inspection to request indexing for the homepage.
+
+## Step 16 — internal SEO
+- Added canonical, Open Graph, and Twitter metadata to supporting pages.
+- Added consistent internal navigation across About, Reviews, Privacy, and Terms.
+- Simplified the sitemap to canonical public URLs and added last-modified dates and priorities.
+- Keep page titles descriptive and avoid duplicate or fabricated review content.

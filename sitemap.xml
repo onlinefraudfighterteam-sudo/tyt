@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/about.html</loc></url>
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/</loc></url>
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/privacy.html</loc></url>
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/reviews.html</loc></url>
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/terms.html</loc></url>
-  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/index.html</loc></url>
+  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/</loc><lastmod>2026-10-07</lastmod><priority>1.0</priority></url>
+  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/about.html</loc><lastmod>2026-10-07</lastmod><priority>0.7</priority></url>
+  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/reviews.html</loc><lastmod>2026-10-07</lastmod><priority>0.6</priority></url>
+  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/privacy.html</loc><lastmod>2026-10-07</lastmod><priority>0.4</priority></url>
+  <url><loc>https://onlinefraudfighterteam-sudo.github.io/tyt/terms.html</loc><lastmod>2026-10-07</lastmod><priority>0.4</priority></url>
 </urlset>
