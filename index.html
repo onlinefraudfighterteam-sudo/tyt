@@ -367,27 +367,41 @@ document.getElementById('caseForm').addEventListener('submit', function(e) {
 
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6ac5b1bf8bb5a434ca7cda86/1k4a3sle9';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
+  // Initialize the Tawk API before the widget script loads.
+  var Tawk_API = window.Tawk_API || {};
+  var Tawk_LoadStart = new Date();
+  var tawkChatRequested = false;
+
+  // The right-side button waits for Tawk to finish loading before opening chat.
+  Tawk_API.onLoad = function () {
+    if (tawkChatRequested && typeof Tawk_API.maximize === 'function') {
+      Tawk_API.maximize();
+      tawkChatRequested = false;
+    }
+  };
+
+  (function () {
+    var s1 = document.createElement("script"),
+        s0 = document.getElementsByTagName("script")[0];
+    s1.async = true;
+    s1.src = 'https://embed.tawk.to/6ac5b1bf8bb5a434ca7cda86/1k4a3sle9';
+    s1.charset = 'UTF-8';
+    s1.setAttribute('crossorigin', '*');
+    s0.parentNode.insertBefore(s1, s0);
+  })();
 </script>
 <!--End of Tawk.to Script-->
+
 <style id="tawk-side-tab-style">
   #tawk-side-tab {
     position: fixed;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 2147483646;
+    z-index: 2147483647;
     border: 0;
     border-radius: 10px 0 0 10px;
-    padding: 14px 10px;
+    padding: 15px 10px;
     background: #16a085;
     color: #fff;
     font: 700 14px/1 Arial, sans-serif;
@@ -399,31 +413,49 @@ s0.parentNode.insertBefore(s1,s0);
   }
   #tawk-side-tab:hover { background: #12816b; }
   #tawk-side-tab:focus { outline: 2px solid #fff; outline-offset: -4px; }
+  #tawk-side-tab:disabled { opacity: .75; cursor: wait; }
   @media (max-width: 600px) {
     #tawk-side-tab { padding: 12px 8px; font-size: 13px; }
   }
 </style>
 
-<button id="tawk-side-tab" type="button" aria-label="Open live chat">Live Chat</button>
+<button id="tawk-side-tab" type="button" aria-label="Open live chat" title="Open Live Chat">
+  Live Chat
+</button>
+
 <script>
 (function () {
   var tab = document.getElementById('tawk-side-tab');
-  tab.addEventListener('click', function () {
-    if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
-      window.Tawk_API.toggle();
-    } else if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+  var attempts = 0;
+  var maxAttempts = 40;
+
+  function openTawkChat() {
+    if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
       window.Tawk_API.maximize();
-    } else {
-      // Tawk is still loading; try again shortly.
-      setTimeout(function () {
-        if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') window.Tawk_API.toggle();
-        else if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') window.Tawk_API.maximize();
-      }, 500);
+      tab.disabled = false;
+      return true;
     }
+    return false;
+  }
+
+  tab.addEventListener('click', function () {
+    if (openTawkChat()) return;
+
+    // Tawk is still loading. The onLoad callback above will open it when ready.
+    window.tawkChatRequested = true;
+    tawkChatRequested = true;
+    tab.disabled = true;
+    attempts = 0;
+
+    var timer = setInterval(function () {
+      attempts++;
+      if (openTawkChat() || attempts >= maxAttempts) {
+        clearInterval(timer);
+        tab.disabled = false;
+      }
+    }, 250);
   });
 })();
 </script>
-
-
 </body>
 </html>
