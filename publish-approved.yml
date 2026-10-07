@@ -1,0 +1,21 @@
+name: Blog Bot - Publish Approved
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - run: python scripts/publish_approved.py
+      - name: Commit published posts
+        run: |
+          git config user.name "Online Fraud Fighter Blog Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add content data sitemap.xml
+          git diff --cached --quiet || git commit -m "Publish approved blog posts"
+          git push
