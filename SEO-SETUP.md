@@ -28,3 +28,7 @@ The homepage now uses a single consolidated meta description, stronger robots di
 - Added consistent internal navigation across About, Reviews, Privacy, and Terms.
 - Simplified the sitemap to canonical public URLs and added last-modified dates and priorities.
 - Keep page titles descriptive and avoid duplicate or fabricated review content.
+
+
+## Step 19 content cluster
+Added a Guides hub plus three original educational pages targeting informational searches around cryptocurrency scams, transaction tracing, and recovery scams. These pages are included in sitemap.xml and linked internally from the homepage.
