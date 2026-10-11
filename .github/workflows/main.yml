@@ -36,14 +36,13 @@ jobs:
             next=$(cat "$state")
           fi
 
-          # Find the next numbered article that has not been published.
           article=""
+
           while [ "$next" -le 50 ]; do
             prefix=$(printf "%02d-" "$next")
 
             candidate=$(find . -maxdepth 1 -type f \
-              -name "${prefix}*" \
-              ! -name "24-hour-crypto-fraud-action-plan.html" \
+              -name "${prefix}*.html" \
               | sort | head -n 1 || true)
 
             if [ -z "$candidate" ]; then
@@ -71,7 +70,6 @@ jobs:
           cp "$article" "$target"
           echo $((next + 1)) > "$state"
 
-          # Rebuild the list of published articles in blog/index.html.
           python3 <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
@@ -80,14 +78,13 @@ jobs:
 
           index = Path("blog/index.html")
           page = index.read_text(encoding="utf-8")
+
           start = "<!-- PUBLISHED_ARTICLES_START -->"
           end = "<!-- PUBLISHED_ARTICLES_END -->"
 
           if start not in page or end not in page:
               raise SystemExit(
-                  "Missing article-list markers in blog/index.html. "
-                  "Add PUBLISHED_ARTICLES_START and PUBLISHED_ARTICLES_END "
-                  "around the article list, then run this workflow again."
+                  "Article-list markers are missing from blog/index.html."
               )
 
           class TitleParser(HTMLParser):
@@ -117,35 +114,41 @@ jobs:
                       self.h1_parts.append(data)
 
           items = []
-          articles = sorted(Path("blog").glob("[0-9][0-9]-*.html"))
 
-          for article in articles:
-              if article.name == "index.html":
-                  continue
-
+          for article in sorted(Path("blog").glob("[0-9][0-9]-*.html")):
               parser = TitleParser()
               parser.feed(article.read_text(encoding="utf-8"))
-              title = " ".join(" ".join(parser.h1_parts or parser.title_parts).split())
-              title = re.sub(r"\s*\|\s*Online Fraud Fighter Team\s*$", "", title)
+
+              title = " ".join(
+                  " ".join(parser.h1_parts or parser.title_parts).split()
+              )
+              title = re.sub(
+                  r"\s*\|\s*Online Fraud Fighter Team\s*$", "", title
+              )
 
               if not title:
                   title = article.stem[3:].replace("-", " ").title()
 
+              filename = html.escape(article.name, quote=True)
+              safe_title = html.escape(title)
+
               items.append(
-                  f'        <li><a href="{html.escape(article.name, quote=True)}">'
-                  f'{html.escape(title)}</a></li>'
+                  f'    <li><a href="{filename}">{safe_title}</a></li>'
               )
 
           listing = (
-              start + "\n      <ul>\n" +
-              "\n".join(items) +
-              "\n      </ul>\n      " + end
+              start + "\n  <ul>\n"
+              + "\n".join(items)
+              + "\n  </ul>\n  " + end
           )
 
           pattern = re.escape(start) + r".*?" + re.escape(end)
-          page = re.sub(pattern, lambda _: listing, page, count=1, flags=re.S)
+          page = re.sub(
+              pattern, lambda _: listing, page, count=1, flags=re.S
+          )
+
           index.write_text(page, encoding="utf-8")
-          print(f"Updated blog index with {len(items)} published articles.")
+          print(f"Blog index updated: {len(items)} articles listed.")
           PY
 
           git add "$target" "$state" blog/index.html
