@@ -1,4 +1,4 @@
-
+```yaml
 name: Publish Prepared Blog Daily
 
 on:
@@ -23,30 +23,132 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Publish next prepared article
+      - name: Publish next prepared article and update blog index
         shell: bash
         run: |
-          set -e
-          mkdir -p .blog-state
+          set -euo pipefail
+
+          mkdir -p .blog-state blog
           state=".blog-state/next-article.txt"
           next=1
+
           if [ -f "$state" ]; then
             next=$(cat "$state")
           fi
-          file=$(printf "%02d-" "$next")
-          article=$(find . -maxdepth 1 -type f -name "${file}*" | sort | head -n 1)
+
+          # Find the next numbered article that has not been published.
+          article=""
+          while [ "$next" -le 50 ]; do
+            prefix=$(printf "%02d-" "$next")
+
+            candidate=$(find . -maxdepth 1 -type f \
+              -name "${prefix}*" \
+              ! -name "24-hour-crypto-fraud-action-plan.html" \
+              | sort | head -n 1 || true)
+
+            if [ -z "$candidate" ]; then
+              next=$((next + 1))
+              continue
+            fi
+
+            target="blog/$(basename "$candidate")"
+
+            if [ -e "$target" ]; then
+              next=$((next + 1))
+              continue
+            fi
+
+            article="$candidate"
+            break
+          done
+
           if [ -z "$article" ]; then
-            echo "No more prepared articles beginning with $file"
+            echo "No more numbered prepared articles to publish."
             exit 0
           fi
-          mkdir -p blog
+
           target="blog/$(basename "$article")"
-          if [ -e "$target" ]; then
-            echo "Article already published: $target"
-            exit 0
-          fi
           cp "$article" "$target"
           echo $((next + 1)) > "$state"
-          git add "$target" "$state"
+
+          # Rebuild the list of published articles in blog/index.html.
+          python3 <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import html
+          import re
+
+          index = Path("blog/index.html")
+          page = index.read_text(encoding="utf-8")
+          start = "<!-- PUBLISHED_ARTICLES_START -->"
+          end = "<!-- PUBLISHED_ARTICLES_END -->"
+
+          if start not in page or end not in page:
+              raise SystemExit(
+                  "Missing article-list markers in blog/index.html. "
+                  "Add PUBLISHED_ARTICLES_START and PUBLISHED_ARTICLES_END "
+                  "around the article list, then run this workflow again."
+              )
+
+          class TitleParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.in_title = False
+                  self.in_h1 = False
+                  self.title_parts = []
+                  self.h1_parts = []
+
+              def handle_starttag(self, tag, attrs):
+                  if tag.lower() == "title":
+                      self.in_title = True
+                  elif tag.lower() == "h1":
+                      self.in_h1 = True
+
+              def handle_endtag(self, tag):
+                  if tag.lower() == "title":
+                      self.in_title = False
+                  elif tag.lower() == "h1":
+                      self.in_h1 = False
+
+              def handle_data(self, data):
+                  if self.in_title:
+                      self.title_parts.append(data)
+                  if self.in_h1:
+                      self.h1_parts.append(data)
+
+          items = []
+          articles = sorted(Path("blog").glob("[0-9][0-9]-*.html"))
+
+          for article in articles:
+              if article.name == "index.html":
+                  continue
+
+              parser = TitleParser()
+              parser.feed(article.read_text(encoding="utf-8"))
+              title = " ".join(" ".join(parser.h1_parts or parser.title_parts).split())
+              title = re.sub(r"\s*\|\s*Online Fraud Fighter Team\s*$", "", title)
+
+              if not title:
+                  title = article.stem[3:].replace("-", " ").title()
+
+              items.append(
+                  f'        <li><a href="{html.escape(article.name, quote=True)}">'
+                  f'{html.escape(title)}</a></li>'
+              )
+
+          listing = (
+              start + "\n      <ul>\n" +
+              "\n".join(items) +
+              "\n      </ul>\n      " + end
+          )
+
+          pattern = re.escape(start) + r".*?" + re.escape(end)
+          page = re.sub(pattern, lambda _: listing, page, count=1, flags=re.S)
+          index.write_text(page, encoding="utf-8")
+          print(f"Updated blog index with {len(items)} published articles.")
+          PY
+
+          git add "$target" "$state" blog/index.html
           git commit -m "Publish prepared blog article $next"
           git push
+```
