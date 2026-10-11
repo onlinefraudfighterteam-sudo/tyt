@@ -153,4 +153,3 @@ jobs:
           git add "$target" "$state" blog/index.html
           git commit -m "Publish prepared blog article $next"
           git push
-```
