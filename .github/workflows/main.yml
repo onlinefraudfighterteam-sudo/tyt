@@ -1,3 +1,4 @@
+
 name: Publish Prepared Blog Daily
 
 on:
@@ -39,9 +40,9 @@ jobs:
 
           while [ "$next" -le 50 ]; do
             prefix=$(printf "%02d-" "$next")
-
             candidate=$(find . -maxdepth 1 -type f \
               -name "${prefix}*.html" \
+              ! -name "24-hour-crypto-fraud-action-plan.html" \
               | sort | head -n 1 || true)
 
             if [ -z "$candidate" ]; then
@@ -61,7 +62,7 @@ jobs:
           done
 
           if [ -z "$article" ]; then
-            echo "No more numbered prepared articles to publish."
+            echo "No more prepared articles to publish."
             exit 0
           fi
 
@@ -77,14 +78,11 @@ jobs:
 
           index = Path("blog/index.html")
           page = index.read_text(encoding="utf-8")
-
           start = "<!-- PUBLISHED_ARTICLES_START -->"
           end = "<!-- PUBLISHED_ARTICLES_END -->"
 
           if start not in page or end not in page:
-              raise SystemExit(
-                  "Article-list markers are missing from blog/index.html."
-              )
+              raise SystemExit("Blog article-list markers are missing.")
 
           class TitleParser(HTMLParser):
               def __init__(self):
@@ -113,24 +111,20 @@ jobs:
                       self.h1_parts.append(data)
 
           items = []
-
           for article in sorted(Path("blog").glob("[0-9][0-9]-*.html")):
               parser = TitleParser()
               parser.feed(article.read_text(encoding="utf-8"))
-
               title = " ".join(
                   " ".join(parser.h1_parts or parser.title_parts).split()
               )
               title = re.sub(
                   r"\s*\|\s*Online Fraud Fighter Team\s*$", "", title
               )
-
               if not title:
                   title = article.stem[3:].replace("-", " ").title()
 
               filename = html.escape(article.name, quote=True)
               safe_title = html.escape(title)
-
               items.append(
                   f'    <li><a href="{filename}">{safe_title}</a></li>'
               )
@@ -140,12 +134,8 @@ jobs:
               + "\n".join(items)
               + "\n  </ul>\n  " + end
           )
-
           pattern = re.escape(start) + r".*?" + re.escape(end)
-          page = re.sub(
-              pattern, lambda _: listing, page, count=1, flags=re.S
-          )
-
+          page = re.sub(pattern, lambda _: listing, page, count=1, flags=re.S)
           index.write_text(page, encoding="utf-8")
           print(f"Blog index updated: {len(items)} articles listed.")
           PY
