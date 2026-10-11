@@ -1,0 +1,52 @@
+
+name: Publish Prepared Blog Daily
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish next prepared article
+        shell: bash
+        run: |
+          set -e
+          mkdir -p .blog-state
+          state=".blog-state/next-article.txt"
+          next=1
+          if [ -f "$state" ]; then
+            next=$(cat "$state")
+          fi
+          file=$(printf "%02d-" "$next")
+          article=$(find . -maxdepth 1 -type f -name "${file}*" | sort | head -n 1)
+          if [ -z "$article" ]; then
+            echo "No more prepared articles beginning with $file"
+            exit 0
+          fi
+          mkdir -p blog
+          target="blog/$(basename "$article")"
+          if [ -e "$target" ]; then
+            echo "Article already published: $target"
+            exit 0
+          fi
+          cp "$article" "$target"
+          echo $((next + 1)) > "$state"
+          git add "$target" "$state"
+          git commit -m "Publish prepared blog article $next"
+          git push
